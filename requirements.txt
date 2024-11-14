@@ -1,0 +1,6 @@
+numpy==2.1.3
+pandas==2.2.3
+Pillow==11.0.0
+stop_words==2018.7.23
+streamlit==1.40.1
+Wikipedia_API==0.7.1

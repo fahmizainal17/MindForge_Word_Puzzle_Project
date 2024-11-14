@@ -11,7 +11,6 @@ from backend import get_topic_words, play_sound, create_word_search, extract_wor
 
 page_style()
 
-
 # Initialize session state variables
 if 'words_found' not in st.session_state:
     st.session_state.words_found = []

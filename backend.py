@@ -1,9 +1,19 @@
+import streamlit as st
+import wikipediaapi
+import random
+import string
+import numpy as np
+import pandas as pd
+import base64
+from stop_words import get_stop_words
+
 # Function to retrieve words related to a topic from Wikipedia
 def get_topic_words(topic, num_words, max_word_length):
     """
-    Fetch related words from Wikipedia for the given topic.
-    Only include words shorter than or equal to max_word_length,
-    avoid stop words, and select challenging words.
+    Fetch related words from Wikipedia for the given topic with some randomness
+    to provide different words each time.
+    Only include words shorter than or equal to max_word_length, avoid stop words,
+    and prioritize challenging words.
     """
     stop_words = set(get_stop_words('english'))
     
@@ -16,21 +26,30 @@ def get_topic_words(topic, num_words, max_word_length):
     if not page.exists():
         return []
     
+    # Split and clean text
     words = list(set(page.summary.split()))
     filtered_words = [
         word.strip(string.punctuation).lower() for word in words 
         if word.isalpha() and 4 < len(word) <= max_word_length
     ]
+    
     # Remove stop words
     filtered_words = [word for word in filtered_words if word not in stop_words]
     
-    # Remove duplicates and sort words by length (longer words first)
-    filtered_words = sorted(list(set(filtered_words)), key=lambda x: len(x), reverse=True)
+    # Shuffle words to add randomness
+    random.shuffle(filtered_words)
     
-    # Now select the first num_words
-    selected_words = [word.upper() for word in filtered_words[:num_words]]
+    # Sort words by length (optional: change order for more randomness)
+    filtered_words = sorted(filtered_words, key=lambda x: len(x), reverse=True)
     
-    return selected_words
+    # Temperature-like randomness: select a subset of words with random sampling
+    temperature_factor = 30  # Lower values create more randomness; adjust as desired
+    num_to_select = int(num_words * temperature_factor)
+    selected_words = random.sample(filtered_words, min(num_to_select, len(filtered_words)))
+    
+    # Ensure unique and formatted output
+    selected_words = list(set(selected_words))[:num_words]
+    return [word.upper() for word in selected_words]
 
 # Function to play sound using base64 encoding
 def play_sound(file_path):
