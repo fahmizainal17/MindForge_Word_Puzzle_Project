@@ -61,7 +61,7 @@ def page_style():
     """
     
     # Set the page configuration with a custom icon
-    icon = Image.open('photos/Round_Profile_Photo.png')
+    icon = Image.open('photos/rubiks.jpg')
     st.set_page_config(page_title="MasterMind Puzzle", page_icon=icon, layout="wide")
 
     # Apply custom styles to the page
