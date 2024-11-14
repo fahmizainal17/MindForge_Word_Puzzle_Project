@@ -4,32 +4,45 @@ import random
 import string
 import numpy as np
 import pandas as pd
-import streamlit.components.v1 as components
+import base64
+from stop_words import get_stop_words
+from component import page_style
+
+page_style()
 
 # Function to retrieve words related to a topic from Wikipedia
-def get_topic_words(topic, num_words):
+def get_topic_words(topic, num_words, max_word_length):
     """
     Fetch related words from Wikipedia for the given topic.
+    Only include words shorter than or equal to max_word_length,
+    avoid stop words, and select challenging words.
     """
-    # Create the Wikipedia object with the language set to 'en' and a custom user-agent
+    stop_words = set(get_stop_words('english'))
+    
     wiki = wikipediaapi.Wikipedia(
         language='en',
-        user_agent='MindForgeWordPuzzle/1.0 (fahmizainal@invokeisdata.com)'
+        user_agent='MindForgeWordPuzzle/1.0 (your_email@example.com)'
     )
     
     page = wiki.page(topic)
     if not page.exists():
         return []
     
-    # Get words by splitting the summary text of the Wikipedia page
     words = list(set(page.summary.split()))
     filtered_words = [
-        word.strip(string.punctuation) for word in words 
-        if word.isalpha() and len(word) > 3
+        word.strip(string.punctuation).lower() for word in words 
+        if word.isalpha() and 4 < len(word) <= max_word_length
     ]
-    random.shuffle(filtered_words)
+    # Remove stop words
+    filtered_words = [word for word in filtered_words if word not in stop_words]
     
-    return [word.upper() for word in filtered_words[:num_words]]
+    # Remove duplicates and sort words by length (longer words first)
+    filtered_words = sorted(list(set(filtered_words)), key=lambda x: len(x), reverse=True)
+    
+    # Now select the first num_words
+    selected_words = [word.upper() for word in filtered_words[:num_words]]
+    
+    return selected_words
 
 # Function to play sound using base64 encoding
 def play_sound(file_path):
@@ -37,7 +50,7 @@ def play_sound(file_path):
         data = f.read()
         b64_encoded = base64.b64encode(data).decode()
     md = f"""
-    <audio controls autoplay>
+    <audio autoplay>
         <source src="data:audio/mp3;base64,{b64_encoded}" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
@@ -51,11 +64,13 @@ def create_word_search(words, grid_size=15):
     directions = [(1, 0), (0, 1), (1, 1), (-1, 1),
                   (-1, 0), (0, -1), (-1, -1), (1, -1)]
     
+    words_not_placed = []
+    
     def place_word(word):
         word_len = len(word)
         placed = False
         attempts = 0
-        while not placed and attempts < 100:
+        while not placed and attempts < 1000:  # Increased attempts
             row, col = random.randint(0, grid_size - 1), random.randint(0, grid_size - 1)
             dir_r, dir_c = random.choice(directions)
             end_r = row + dir_r * (word_len - 1)
@@ -75,9 +90,14 @@ def create_word_search(words, grid_size=15):
                         grid[new_r, new_c] = word[i]
                     placed = True
             attempts += 1
-            
+        return placed  # Return whether the word was placed or not
+                
+    # Place longer words first
+    words = sorted(words, key=len, reverse=True)
+    
     for word in words:
-        place_word(word)
+        if not place_word(word):
+            words_not_placed.append(word)
     
     # Fill in the empty spaces with random letters
     for r in range(grid_size):
@@ -85,7 +105,7 @@ def create_word_search(words, grid_size=15):
             if grid[r, c] == '':
                 grid[r, c] = random.choice(string.ascii_uppercase)
     
-    return grid
+    return grid, words_not_placed
 
 # Function to extract word from grid based on coordinates
 def extract_word_from_grid(grid, start_row, start_col, end_row, end_col):
@@ -164,39 +184,39 @@ if 'show_words' not in st.session_state:
     st.session_state.show_words = True
 
 # Streamlit UI
-st.title("MasterMind Puzzle: Learn and Master Topics through Word Search")
+st.title("MindForge Puzzle: Forge your mind to any topic you want!")
 st.write("Enter a topic, select the number of words and grid size, and generate a word search puzzle to master key terms.")
 
 # User inputs for topic, word count, and grid size
 topic = st.text_input("Enter a topic:", "Machine Learning")
-num_words = st.slider("Number of words:", 1, 20, 5)
-grid_size = st.slider("Grid size:", 7, 13, 10)
+num_words = st.slider("Number of words:", 1, 20, 2)
+grid_size = st.slider("Grid size:", 11, 13, 13)  # Increased max grid size
 
 # Determine difficulty level based on num_words and grid_size
 difficulty = determine_difficulty(num_words, grid_size)
 st.write(f"**Difficulty Level:** {difficulty}")
 
 if st.button("Generate Puzzle"):
-    words = get_topic_words(topic, num_words)
+    max_word_length = grid_size  # Maximum word length based on grid size
+    words = get_topic_words(topic, num_words, max_word_length)
     if words:
-        grid = create_word_search(words, grid_size)
+        grid, words_not_placed = create_word_search(words, grid_size)
+        # Remove words that couldn't be placed
+        words = [word for word in words if word not in words_not_placed]
         st.session_state.grid = grid
         st.session_state.words = words
         st.session_state.words_found = []
         st.session_state.found_positions = set()
         st.session_state.game_over = False
         st.session_state.show_words = True  # Reset to show words by default
+        if words_not_placed:
+            st.warning(f"The following words could not be placed due to size constraints and have been removed: {', '.join(words_not_placed)}")
     else:
         st.write("Sorry, couldn't find enough words for this topic. Please try another one.")
 
 if st.session_state.grid is not None:
     grid = st.session_state.grid
     words = st.session_state.words
-
-    # Display the puzzle grid with indices and highlighted found words
-    st.write("**Your Word Search Puzzle:**")
-    grid_display = display_grid_with_indices(grid, st.session_state.found_positions)
-    st.dataframe(grid_display, width=700, height=700)
 
     # Get user input for word selection
     st.write("**Select a word by entering the coordinates:**")
@@ -208,7 +228,9 @@ if st.session_state.grid is not None:
         end_row = st.number_input("End Row (1-based index):", min_value=1, max_value=grid_size, value=1)
         end_col = st.number_input("End Column (1-based index):", min_value=1, max_value=grid_size, value=1)
 
-    if st.button("Check Selection"):
+    # Process the selection
+    check_selection = st.button("Check Selection")
+    if check_selection:
         # Convert to 0-based index
         start_row_idx = int(start_row) - 1
         start_col_idx = int(start_col) - 1
@@ -242,8 +264,17 @@ if st.session_state.grid is not None:
                     play_sound("assets/incorrect_sound.mp3")
             else:
                 st.error("Invalid selection. Words must be in straight lines.")
+                # Play incorrect sound after user interaction
+                play_sound("assets/incorrect_sound.mp3")
         else:
             st.error("Coordinates out of bounds.")
+            # Play incorrect sound after user interaction
+            play_sound("assets/incorrect_sound.mp3")
+
+    # Display the puzzle grid with indices and highlighted found words
+    st.write("**Your Word Search Puzzle:**")
+    grid_display = display_grid_with_indices(grid, st.session_state.found_positions)
+    st.dataframe(grid_display, width=700, height=700)
 
     # Now display the word list after updating the session state
     st.session_state.show_words = st.checkbox("Show Words to Find", value=st.session_state.show_words)
