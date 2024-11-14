@@ -175,3 +175,20 @@ def determine_difficulty(num_words, grid_size):
 # Function to check if a word is in the list
 def check_word(word, word_list):
     return word.upper() in word_list
+
+def is_straight_line(start_row, start_col, end_row, end_col):
+    """
+    Checks if the selected coordinates form a straight line.
+    Acceptable lines can be horizontal, vertical, or diagonal.
+    """
+    # Horizontal line (same row)
+    if start_row == end_row:
+        return True
+    # Vertical line (same column)
+    elif start_col == end_col:
+        return True
+    # Diagonal line (difference between rows and columns is the same)
+    elif abs(start_row - end_row) == abs(start_col - end_col):
+        return True
+    else:
+        return False

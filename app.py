@@ -7,7 +7,7 @@ import pandas as pd
 import base64
 from stop_words import get_stop_words
 from component import page_style
-from backend import get_topic_words, play_sound, create_word_search, extract_word_from_grid, display_grid_with_indices, determine_difficulty, check_word
+from backend import get_topic_words, play_sound, create_word_search, extract_word_from_grid, display_grid_with_indices, determine_difficulty, check_word, is_straight_line
 
 page_style()
 
@@ -82,26 +82,33 @@ if st.session_state.grid is not None:
         # Validate coordinates
         if (0 <= start_row_idx < grid_size and 0 <= start_col_idx < grid_size and
             0 <= end_row_idx < grid_size and 0 <= end_col_idx < grid_size):
-            # Extract the word from grid based on coordinates
-            word_selected, positions = extract_word_from_grid(
-                grid, start_row_idx, start_col_idx, end_row_idx, end_col_idx
-            )
-            if word_selected:
-                reversed_word = word_selected[::-1]
-                if ((check_word(word_selected, words) or check_word(reversed_word, words)) and
-                    word_selected not in st.session_state.words_found and
-                    reversed_word not in st.session_state.words_found):
-                    found_word = word_selected if word_selected in words else reversed_word
-                    st.session_state.words_found.append(found_word)
-                    st.session_state.found_positions.update(positions)
-                    st.success(f"Correct! You found the word: {found_word}")
-                    
-                    # Play correct sound after user interaction
-                    play_sound("assets/correct_sound.mp3")
-                elif (word_selected in st.session_state.words_found or reversed_word in st.session_state.words_found):
-                    st.warning("You've already found this word.")
+
+            # Check if the selection forms a straight line (horizontal, vertical, or diagonal)
+            if is_straight_line(start_row_idx, start_col_idx, end_row_idx, end_col_idx):
+                # Extract the word from grid based on coordinates
+                word_selected, positions = extract_word_from_grid(
+                    grid, start_row_idx, start_col_idx, end_row_idx, end_col_idx
+                )
+                if word_selected:
+                    reversed_word = word_selected[::-1]
+                    if ((check_word(word_selected, words) or check_word(reversed_word, words)) and
+                        word_selected not in st.session_state.words_found and
+                        reversed_word not in st.session_state.words_found):
+                        found_word = word_selected if word_selected in words else reversed_word
+                        st.session_state.words_found.append(found_word)
+                        st.session_state.found_positions.update(positions)
+                        st.success(f"Correct! You found the word: {found_word}")
+                        
+                        # Play correct sound after user interaction
+                        play_sound("assets/correct_sound.mp3")
+                    elif (word_selected in st.session_state.words_found or reversed_word in st.session_state.words_found):
+                        st.warning("You've already found this word.")
+                    else:
+                        st.error("Incorrect selection. Try again!")
+                        # Play incorrect sound after user interaction
+                        play_sound("assets/incorrect_sound.mp3")
                 else:
-                    st.error("Incorrect selection. Try again!")
+                    st.error("Invalid selection. Words must be in straight lines.")
                     # Play incorrect sound after user interaction
                     play_sound("assets/incorrect_sound.mp3")
             else:
