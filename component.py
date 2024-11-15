@@ -12,7 +12,7 @@ def get_base64_of_bin_file(bin_file):
 
 def page_style():
     # Encode the local image to base64
-    sidebar_image_base64 = get_base64_of_bin_file('assets/puzzle_sidebar_background.jpg')
+    sidebar_image_base64 = get_base64_of_bin_file('assets/backgrounds/puzzle_sidebar_background.jpg')
 
     # Apply custom styles, including the sidebar background image
     custom_style = f"""
@@ -68,7 +68,7 @@ def page_style():
     st.markdown(custom_style, unsafe_allow_html=True)
 
     # Display the main background image (optional)
-    image = Image.open('assets/main_puzzle_background.png')
+    image = Image.open('assets/backgrounds/main_puzzle_background.png')
     st.image(image)
 
     # Sidebar content
