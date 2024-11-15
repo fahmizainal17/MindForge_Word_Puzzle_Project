@@ -54,9 +54,13 @@ def get_topic_words(topic, num_words, max_word_length):
 # Define audio HTML function to embed looping background sound
 def play_background_audio(file_path, loop=True):
     loop_attr = "loop" if loop else ""
+    with open(file_path, "rb") as f:
+        data = f.read()
+        b64_encoded = base64.b64encode(data).decode()
     audio_html = f"""
         <audio autoplay {loop_attr} style="display:none;">
-            <source src="{file_path}" type="audio/mpeg">
+            <source src="data:audio/mp3;base64,{b64_encoded}" type="audio/mp3">
+            Your browser does not support the audio element.
         </audio>
     """
     st.markdown(audio_html, unsafe_allow_html=True)
