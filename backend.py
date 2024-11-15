@@ -58,13 +58,13 @@ def play_background_audio(file_path, loop=True):
         data = f.read()
         b64_encoded = base64.b64encode(data).decode()
     audio_html = f"""
-        <audio autoplay {loop_attr} style="display:none;">
+        <audio autoplay {loop_attr} controls>
             <source src="data:audio/mp3;base64,{b64_encoded}" type="audio/mp3">
             Your browser does not support the audio element.
         </audio>
     """
     st.markdown(audio_html, unsafe_allow_html=True)
-    
+
 # Function to play sound using base64 encoding
 def play_sound(file_path):
     with open(file_path, "rb") as f:
