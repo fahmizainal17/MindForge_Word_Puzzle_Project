@@ -51,6 +51,16 @@ def get_topic_words(topic, num_words, max_word_length):
     selected_words = list(set(selected_words))[:num_words]
     return [word.upper() for word in selected_words]
 
+# Define audio HTML function to embed looping background sound
+def play_background_audio(file_path, loop=True):
+    loop_attr = "loop" if loop else ""
+    audio_html = f"""
+        <audio autoplay {loop_attr} style="display:none;">
+            <source src="{file_path}" type="audio/mpeg">
+        </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
+    
 # Function to play sound using base64 encoding
 def play_sound(file_path):
     with open(file_path, "rb") as f:

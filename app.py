@@ -7,7 +7,17 @@ import pandas as pd
 import base64
 from stop_words import get_stop_words
 from component import page_style
-from backend import get_topic_words, play_sound, create_word_search, extract_word_from_grid, display_grid_with_indices, determine_difficulty, check_word, is_straight_line
+from backend import (
+    get_topic_words,
+    play_sound,
+    create_word_search,
+    extract_word_from_grid,
+    display_grid_with_indices,
+    determine_difficulty,
+    check_word,
+    is_straight_line,
+    play_background_audio
+)
 
 page_style()
 
@@ -24,6 +34,21 @@ if 'words' not in st.session_state:
     st.session_state.words = []
 if 'show_words' not in st.session_state:
     st.session_state.show_words = True
+if 'game_stage' not in st.session_state:
+    st.session_state.game_stage = 'before_game'  # Possible stages: before_game, during_game, play_again
+
+# Play sounds based on the game stage
+if st.session_state.game_stage == 'before_game':
+    play_background_audio("assets/sounds/before_the_game_sound.mp3")
+elif st.session_state.game_stage == 'during_game':
+    play_background_audio("assets/sounds/during_the_game_sound.mp3")
+elif st.session_state.game_stage == 'play_again':
+    # Play the "play_again_sound.mp3" once without looping
+    play_background_audio("assets/sounds/play_again_sound.mp3", loop=False)
+    # After playing the sound once, reset the game stage to 'before_game'
+    st.session_state.game_stage = 'before_game'
+    # Need to rerun to update the audio
+    st.experimental_rerun()
 
 # Streamlit UI
 st.title("MindForge Puzzle: Forge your mind to any topic you want!")
@@ -51,6 +76,8 @@ if st.button("Generate Puzzle"):
         st.session_state.found_positions = set()
         st.session_state.game_over = False
         st.session_state.show_words = True  # Reset to show words by default
+        st.session_state.game_stage = 'during_game'  # Update game stage
+        st.experimental_rerun()  # Rerun to update the audio
         if words_not_placed:
             st.warning(f"The following words could not be placed due to size constraints and have been removed: {', '.join(words_not_placed)}")
     else:
@@ -71,8 +98,7 @@ if st.session_state.grid is not None:
         end_col = st.number_input("End Column (1-based index):", min_value=1, max_value=grid_size, value=1)
 
     # Process the selection
-    check_selection = st.button("Check Selection")
-    if check_selection:
+    if st.button("Check Selection"):
         # Convert to 0-based index
         start_row_idx = int(start_row) - 1
         start_col_idx = int(start_col) - 1
@@ -100,25 +126,25 @@ if st.session_state.grid is not None:
                         st.success(f"Correct! You found the word: {found_word}")
                         
                         # Play correct sound after user interaction
-                        play_sound("assets/correct_sound.mp3")
+                        play_sound("assets/sounds/correct_sound.mp3")
                     elif (word_selected in st.session_state.words_found or reversed_word in st.session_state.words_found):
                         st.warning("You've already found this word.")
                     else:
                         st.error("Incorrect selection. Try again!")
                         # Play incorrect sound after user interaction
-                        play_sound("assets/incorrect_sound.mp3")
+                        play_sound("assets/sounds/incorrect_sound.mp3")
                 else:
                     st.error("Invalid selection. Words must be in straight lines.")
                     # Play incorrect sound after user interaction
-                    play_sound("assets/incorrect_sound.mp3")
+                    play_sound("assets/sounds/incorrect_sound.mp3")
             else:
                 st.error("Invalid selection. Words must be in straight lines.")
                 # Play incorrect sound after user interaction
-                play_sound("assets/incorrect_sound.mp3")
+                play_sound("assets/sounds/incorrect_sound.mp3")
         else:
             st.error("Coordinates out of bounds.")
             # Play incorrect sound after user interaction
-            play_sound("assets/incorrect_sound.mp3")
+            play_sound("assets/sounds/incorrect_sound.mp3")
 
     # Display the puzzle grid with indices and highlighted found words
     st.write("**Your Word Search Puzzle:**")
@@ -145,7 +171,7 @@ if st.session_state.grid is not None:
             st.balloons()
             st.success("Congratulations! You've found all the words!")
             # Play congratulatory sound after user interaction
-            play_sound("assets/congratulations_sound.mp3")
+            play_sound("assets/sounds/congratulations_sound.mp3")
             st.session_state.game_over = True
             # Prompt to play again
             st.write("Please click the button below to play again and reinforce your learning.")
@@ -156,4 +182,6 @@ if st.session_state.grid is not None:
                 st.session_state.game_over = False
                 st.session_state.grid = None
                 st.session_state.words = []
+                # Update game stage to play the "play_again_sound.mp3" once
+                st.session_state.game_stage = 'play_again'
                 st.experimental_rerun()
