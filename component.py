@@ -77,7 +77,7 @@ def page_style():
         st.image("photos/Round_Profile_Photo.png", width=100)
 
         st.markdown("""
-            ## MindForge Puzzle Game
+            ## MindForge Puzzle Game 🧩
         """)
 
         st.markdown("""

@@ -39,8 +39,8 @@ if 'game_stage' not in st.session_state:
 # Start Game Button
 if not st.session_state.game_started:
     # Display Start Game interface
-    st.title("MindForge Puzzle: Forge your mind to any topic you want!")
-    st.write("Click the button below to start the game.")
+    st.title("MindForge Puzzle 🧩 : Forge your mind 🧠 to any topic you want!")
+    st.write("Click the button below two times to start the game.")
     if st.button("Start Game"):
         st.session_state.game_started = True
         st.session_state.game_stage = 'before_game'  # Set initial game stage
@@ -48,15 +48,15 @@ if not st.session_state.game_started:
 else:
     # Play sounds based on the game stage
     if st.session_state.game_stage == 'before_game':
-        play_background_audio("assets/sounds/before_the_game_sound.mp3")
+        play_background_audio("assets/sounds/during_the_game_sound.mp3")
     elif st.session_state.game_stage == 'during_game':
         play_background_audio("assets/sounds/during_the_game_sound.mp3")
     # Streamlit UI
     st.title("MindForge Puzzle: Forge your mind to any topic you want!")
-    st.write("Enter a topic, select the number of words and grid size, and generate a word search puzzle to master key terms.")
+    st.write("Enter any topic you want to master key terms for. Then,select the number of words and grid size, and generate a word search puzzle and forge your mind.")
 
     # User inputs for topic, word count, and grid size
-    topic = st.text_input("Enter a topic:", "Machine Learning")
+    topic = st.text_input("Enter a topic:", "Malaysia")
     num_words = st.slider("Number of words:", 1, 20, 2)
     grid_size = st.slider("Grid size:", 11, 13, 13)  # Increased max grid size
 
@@ -175,7 +175,7 @@ else:
                 play_sound("assets/sounds/congratulations_sound.mp3")
                 st.session_state.game_over = True
                 # Prompt to play again
-                st.write("Please click the button below to play again and reinforce your learning.")
+                st.write("Please click the button below two timesto play again and reinforce your learning.")
 
             # Display the "Play Again" button when the game is over
             if st.session_state.game_over:

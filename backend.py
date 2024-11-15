@@ -58,7 +58,7 @@ def play_background_audio(file_path, loop=True):
         data = f.read()
         b64_encoded = base64.b64encode(data).decode()
     audio_html = f"""
-        <audio autoplay {loop_attr} controls>
+        <audio autoplay {loop_attr} >
             <source src="data:audio/mp3;base64,{b64_encoded}" type="audio/mp3">
             Your browser does not support the audio element.
         </audio>
