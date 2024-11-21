@@ -1,4 +1,4 @@
-# **🧩 MindForge Word Puzzle Project 🧠**
+# **🧩 MindForge Word Puzzle Project 🧠** [![wakatime](https://wakatime.com/badge/user/ae82a943-125e-489a-a656-e35fe84d587b/project/5dd7cb9b-6471-4470-8eb9-06f7f1faf53d.svg)](https://wakatime.com/badge/user/ae82a943-125e-489a-a656-e35fe84d587b/project/5dd7cb9b-6471-4470-8eb9-06f7f1faf53d)
 
 <!-- Badge to Visit Project -->
 <div align="center"> 
